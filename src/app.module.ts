@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { S3Module } from './s3/s3.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { WebSocketModule } from './websocket/websocket.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -17,6 +18,7 @@ import configuration from './config/configuration';
     PrismaModule,
     AuthModule,
     S3Module,
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
