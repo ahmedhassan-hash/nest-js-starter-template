@@ -43,6 +43,14 @@ A complete NestJS starter template with authentication, database, AWS S3, WebSoc
 - Invoice and payment method management
 - Support for both one-time payments and recurring subscriptions
 
+✅ **Cron Job Management**
+- Dynamic cron job creation and management
+- Start, stop, and delete jobs programmatically
+- Decorator-based scheduling for static jobs
+- Job status monitoring and tracking
+- Support for custom timezones
+- Built-in logging and error handling
+
 ✅ **Production Ready**
 - Environment-based configuration
 - Comprehensive error handling and logging
@@ -301,6 +309,10 @@ src/
 │   ├── stripe-webhook.service.ts # Webhook event handling
 │   ├── stripe.module.ts        # Stripe module
 │   └── README.md               # Stripe documentation
+├── cron/
+│   ├── cron.service.ts         # Cron job management service
+│   ├── cron.module.ts          # Cron module
+│   └── cron-example.service.ts # Usage examples
 ├── app.controller.ts
 ├── app.service.ts
 ├── app.module.ts               # Main app module
@@ -372,6 +384,128 @@ prisma/
 - `cancelSubscription(subscriptionId, immediately?)` - Cancel subscription
 - `getCustomerSubscriptions(customerId)` - Get customer's subscriptions
 - `getInvoices(customerId)` - Get customer's invoices
+
+### Cron Service Methods
+- `addCronJob(name, cronTime, callback, timezone?)` - Dynamically add a cron job
+- `deleteCronJob(name)` - Remove a cron job
+- `stopCronJob(name)` - Stop a cron job without removing it
+- `startCronJob(name)` - Start a previously stopped cron job
+- `getCronJobs()` - Get list of all registered cron job names
+- `cronJobExists(name)` - Check if a cron job exists
+- `getCronJobStatus(name)` - Get detailed status of a specific cron job
+- `getAllCronJobsStatus()` - Get status of all registered cron jobs
+
+## Cron Job Usage Examples
+
+### Using the Cron Service Directly
+```typescript
+import { Injectable } from '@nestjs/common';
+import { CronService } from './cron/cron.service';
+
+@Injectable()
+export class TaskService {
+  constructor(private cronService: CronService) {}
+
+  setupDailyCleanup() {
+    this.cronService.addCronJob(
+      'daily-cleanup',
+      '0 0 * * *', // Every day at midnight
+      () => {
+        console.log('Running daily cleanup...');
+        // Your cleanup logic here
+      },
+      'UTC'
+    );
+  }
+
+  setupHourlySync() {
+    this.cronService.addCronJob(
+      'hourly-sync',
+      '0 * * * *', // Every hour
+      async () => {
+        console.log('Running hourly sync...');
+        // Your sync logic here
+      }
+    );
+  }
+
+  manageJobs() {
+    // Stop a job
+    this.cronService.stopCronJob('daily-cleanup');
+
+    // Start a job
+    this.cronService.startCronJob('daily-cleanup');
+
+    // Get job status
+    const status = this.cronService.getCronJobStatus('daily-cleanup');
+    console.log(status);
+    // { name: 'daily-cleanup', running: true, lastDate: Date, nextDate: Date }
+
+    // Get all jobs
+    const allJobs = this.cronService.getAllCronJobsStatus();
+
+    // Delete a job
+    this.cronService.deleteCronJob('daily-cleanup');
+  }
+}
+```
+
+### Using Cron Decorators (Static Jobs)
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+
+@Injectable()
+export class TaskService {
+  private readonly logger = new Logger(TaskService.name);
+
+  // Run every day at midnight
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  handleDailyTask() {
+    this.logger.debug('Running daily task at midnight');
+    // Your logic here
+  }
+
+  // Run every 30 minutes
+  @Cron('0 */30 * * * *')
+  handleEvery30Minutes() {
+    this.logger.debug('Running task every 30 minutes');
+    // Your logic here
+  }
+
+  // Run every Monday at 9 AM
+  @Cron('0 0 9 * * 1')
+  handleWeeklyReport() {
+    this.logger.debug('Generating weekly report');
+    // Your logic here
+  }
+}
+```
+
+### Cron Expression Examples
+```
+'0 0 * * * *'       // Every hour
+'0 */30 * * * *'    // Every 30 minutes
+'0 0 0 * * *'       // Every day at midnight
+'0 0 9 * * 1-5'     // Weekdays at 9 AM
+'0 0 0 1 * *'       // First day of every month at midnight
+'0 0 12 * * 0'      // Every Sunday at noon
+```
+
+### Available CronExpression Constants
+- `CronExpression.EVERY_SECOND` - Every second
+- `CronExpression.EVERY_5_SECONDS` - Every 5 seconds
+- `CronExpression.EVERY_10_SECONDS` - Every 10 seconds
+- `CronExpression.EVERY_30_SECONDS` - Every 30 seconds
+- `CronExpression.EVERY_MINUTE` - Every minute
+- `CronExpression.EVERY_5_MINUTES` - Every 5 minutes
+- `CronExpression.EVERY_10_MINUTES` - Every 10 minutes
+- `CronExpression.EVERY_30_MINUTES` - Every 30 minutes
+- `CronExpression.EVERY_HOUR` - Every hour
+- `CronExpression.EVERY_DAY_AT_MIDNIGHT` - Every day at 00:00
+- `CronExpression.EVERY_WEEK` - Every week
+- `CronExpression.EVERY_MONTH` - Every month
+- `CronExpression.EVERY_YEAR` - Every year
 
 ## Database Schema
 

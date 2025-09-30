@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { StripeModule } from './stripe/stripe.module';
+import { CronModule } from './cron/cron.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -21,6 +22,7 @@ import configuration from './config/configuration';
     S3Module,
     WebSocketModule,
     StripeModule,
+    CronModule,
   ],
   controllers: [AppController],
   providers: [AppService],
