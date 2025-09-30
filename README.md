@@ -1,6 +1,6 @@
-# NestJS Starter Template with AWS S3 Integration
+# NestJS Starter Template
 
-A complete NestJS starter template with built-in AWS S3 file operations including upload, delete, and pre-signed URL generation.
+A complete NestJS starter template with authentication, database, AWS S3, WebSockets, and Stripe payment integration.
 
 ## Features
 
@@ -26,6 +26,22 @@ A complete NestJS starter template with built-in AWS S3 file operations includin
 - Pre-signed URL generation for uploads
 - Configurable folder organization
 - TypeScript support with proper typing
+
+✅ **WebSocket Implementation**
+- Real-time communication with Socket.IO
+- JWT authentication for WebSocket connections
+- Active user tracking and management
+- Room-based messaging
+- Broadcasting to all users, specific users, or roles
+- WebSocket REST API for management
+
+✅ **Stripe Payment Integration**
+- Checkout session creation for payments and subscriptions
+- Customer management (create, retrieve, update)
+- Subscription lifecycle management (create, update, cancel)
+- Webhook handling for Stripe events
+- Invoice and payment method management
+- Support for both one-time payments and recurring subscriptions
 
 ✅ **Production Ready**
 - Environment-based configuration
@@ -70,6 +86,11 @@ A complete NestJS starter template with built-in AWS S3 file operations includin
    AWS_SECRET_ACCESS_KEY=your-secret-access-key
    AWS_REGION=us-east-1
    AWS_S3_BUCKET_NAME=your-bucket-name
+
+   # Stripe Configuration
+   STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
+   STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-publishable-key
+   STRIPE_WEBHOOK_SECRET=whsec_your-stripe-webhook-secret
 
    # Application Configuration
    PORT=3000
@@ -258,6 +279,28 @@ src/
 │   ├── s3.service.ts           # S3 operations service
 │   ├── s3.module.ts            # S3 module
 │   └── s3-example.service.ts   # Usage examples
+├── websocket/
+│   ├── guards/
+│   │   └── ws-jwt.guard.ts     # WebSocket JWT authentication guard
+│   ├── interfaces/
+│   │   └── socket-user.interface.ts # Socket user interface
+│   ├── websocket.gateway.ts    # WebSocket gateway
+│   ├── socket-manager.service.ts # Socket connection management
+│   ├── websocket.controller.ts # WebSocket REST API
+│   ├── websocket.module.ts     # WebSocket module
+│   └── README.md               # WebSocket documentation
+├── stripe/
+│   ├── dto/
+│   │   ├── create-checkout-session.dto.ts
+│   │   ├── create-customer.dto.ts
+│   │   ├── create-subscription.dto.ts
+│   │   ├── update-subscription.dto.ts
+│   │   └── cancel-subscription.dto.ts
+│   ├── stripe.service.ts       # Core Stripe operations
+│   ├── stripe.controller.ts    # Stripe API endpoints
+│   ├── stripe-webhook.service.ts # Webhook event handling
+│   ├── stripe.module.ts        # Stripe module
+│   └── README.md               # Stripe documentation
 ├── app.controller.ts
 ├── app.service.ts
 ├── app.module.ts               # Main app module
@@ -290,6 +333,9 @@ prisma/
 | `AWS_SECRET_ACCESS_KEY` | AWS Secret Access Key | Yes | - |
 | `AWS_REGION` | AWS Region | No | `us-east-1` |
 | `AWS_S3_BUCKET_NAME` | S3 Bucket Name | Yes | - |
+| `STRIPE_SECRET_KEY` | Stripe secret key (test: sk_test_...) | Yes | - |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (test: pk_test_...) | Yes | - |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes | - |
 | `PORT` | Application port | No | `3000` |
 | `NODE_ENV` | Environment | No | `development` |
 
@@ -309,6 +355,23 @@ prisma/
 - `deleteFile(key)` - Delete a file from S3
 - `generatePreSignedUrl(key, expiresIn?)` - Generate download URL
 - `generatePreSignedUploadUrl(fileName, contentType, folder?, expiresIn?)` - Generate upload URL
+
+### WebSocket Service Methods
+- `addUser(socket, user)` - Add authenticated user to active connections
+- `removeUser(socketId)` - Remove user from active connections
+- `getAllActiveUsers()` - Get list of all connected users
+- `sendToUser(userId, event, data)` - Send message to specific user
+- `broadcastToAll(event, data)` - Broadcast message to all users
+- `broadcastToRole(role, event, data)` - Send message to users with specific role
+
+### Stripe Service Methods
+- `createCheckoutSession(params)` - Create payment/subscription checkout session
+- `createCustomer(params)` - Create Stripe customer
+- `createSubscription(params)` - Create subscription
+- `updateSubscription(subscriptionId, params)` - Update subscription
+- `cancelSubscription(subscriptionId, immediately?)` - Cancel subscription
+- `getCustomerSubscriptions(customerId)` - Get customer's subscriptions
+- `getInvoices(customerId)` - Get customer's invoices
 
 ## Database Schema
 
@@ -336,9 +399,28 @@ interface User {
 ## Documentation Files
 
 - **README.md**: Main project documentation and quick start guide
-- **AUTH_USAGE.md**: Detailed authentication system guide
-- **S3_USAGE.md**: S3 integration examples and API documentation
-- **SWAGGER_USAGE.md**: Complete Swagger/OpenAPI documentation guide
+- **src/websocket/README.md**: WebSocket implementation guide and examples
+- **src/stripe/README.md**: Stripe payment integration documentation
+- **Interactive Swagger Documentation**: Available at `http://localhost:3000/api` when running
+
+## Getting Stripe Credentials
+
+1. **Create a Stripe Account**: Sign up at [stripe.com](https://stripe.com)
+
+2. **Get Test Keys**: Go to [Stripe Dashboard → API Keys](https://dashboard.stripe.com/test/apikeys)
+   - Copy your **Publishable key** (starts with `pk_test_`)
+   - Copy your **Secret key** (starts with `sk_test_`)
+
+3. **Set up Webhooks**:
+   - Go to [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/test/webhooks)
+   - Create endpoint: `https://yourdomain.com/stripe/webhooks`
+   - For local development, use [Stripe CLI](https://stripe.com/docs/stripe-cli):
+     ```bash
+     stripe listen --forward-to localhost:3000/stripe/webhooks
+     ```
+   - Copy the webhook signing secret (starts with `whsec_`)
+
+4. **Update Environment Variables**: Replace the placeholder values in your `.env` file
 
 ## License
 

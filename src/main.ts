@@ -4,7 +4,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+  });
 
   // Enable validation pipes globally
   app.useGlobalPipes(
@@ -25,12 +27,16 @@ async function bootstrap() {
       - Role-based access control (USER, ADMIN, MODERATOR)
       - PostgreSQL database with Prisma ORM
       - AWS S3 integration for file operations
+      - WebSocket implementation with Socket.IO
+      - Stripe payment processing with subscriptions
       - Comprehensive validation and error handling
     `,
     )
     .setVersion('1.0.0')
     .addTag('Authentication', 'User authentication and authorization endpoints')
     .addTag('S3', 'AWS S3 file operations endpoints')
+    .addTag('WebSocket', 'Real-time WebSocket communication endpoints')
+    .addTag('Stripe', 'Payment processing and subscription management endpoints')
     .addBearerAuth(
       {
         description: 'JWT Authorization header using the Bearer scheme',
